@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Calendar, GraduationCap, BookOpen, Users, Building2, UsersRound } from "lucide-react";
+import { Calendar, GraduationCap, BookOpen, Users, Building2, UsersRound, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/", label: "Jovens", icon: Users },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/jovens", label: "Jovens", icon: Users },
   { to: "/turmas", label: "Turmas", icon: UsersRound },
   { to: "/cursos", label: "Cursos", icon: GraduationCap },
   { to: "/conteudos", label: "Conteúdos", icon: BookOpen },
