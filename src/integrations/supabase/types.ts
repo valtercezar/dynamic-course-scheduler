@@ -14,7 +14,218 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conteudos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
+      curso_conteudos: {
+        Row: {
+          conteudo_id: string
+          curso_id: string
+          id: string
+          ordem: number
+        }
+        Insert: {
+          conteudo_id: string
+          curso_id: string
+          id?: string
+          ordem?: number
+        }
+        Update: {
+          conteudo_id?: string
+          curso_id?: string
+          id?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curso_conteudos_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curso_conteudos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos: {
+        Row: {
+          carga_semanal: number
+          carga_total: number
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          carga_semanal?: number
+          carga_total?: number
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          carga_semanal?: number
+          carga_total?: number
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      feriados: {
+        Row: {
+          dia: number
+          id: string
+          mes: number
+          nome: string
+        }
+        Insert: {
+          dia: number
+          id?: string
+          mes: number
+          nome: string
+        }
+        Update: {
+          dia?: number
+          id?: string
+          mes?: number
+          nome?: string
+        }
+        Relationships: []
+      }
+      jovens: {
+        Row: {
+          cpf: string | null
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          id: string
+          nome: string
+          parceiro_id: string | null
+          turma_id: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          id?: string
+          nome: string
+          parceiro_id?: string | null
+          turma_id?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          id?: string
+          nome?: string
+          parceiro_id?: string | null
+          turma_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jovens_parceiro_id_fkey"
+            columns: ["parceiro_id"]
+            isOneToOne: false
+            referencedRelation: "parceiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jovens_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "turmas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parceiros: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      turmas: {
+        Row: {
+          codigo: string
+          created_at: string
+          curso_id: string
+          dia_teorico: number
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          turno_terca_a_sabado: boolean
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          curso_id: string
+          dia_teorico?: number
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          turno_terca_a_sabado?: boolean
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          curso_id?: string
+          dia_teorico?: number
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          turno_terca_a_sabado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turmas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
