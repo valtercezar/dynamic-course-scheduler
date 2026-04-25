@@ -176,6 +176,56 @@ All colors live in `src/index.css` as **HSL semantic tokens** (e.g. `--primary`,
 
 ---
 
+## 🧠 About this project
+
+This project is a dynamic course scheduling system designed to manage users, schedules, and course planning.
+
+Although initially generated using modern tools, I actively customized and improved the backend logic, integrations, and system behavior.
+
+The goal is to simulate real-world enterprise scenarios involving scheduling, data handling, and system extensibility.
+
+---
+
+## 👨‍💻 My Contributions
+
+- Customized backend logic and API structure
+- Improved system behavior and data handling
+- Structured project for scalability and maintainability
+- Prepared system for real-world use cases
+
+---
+
+## 🔌 Extra API (JWT-protected)
+
+A dedicated REST endpoint is exposed via a serverless backend function and protected by JWT authentication (the same session token issued at sign-in).
+
+**Endpoint**
+```
+POST /functions/v1/apprentice-api
+Authorization: Bearer <JWT>
+Content-Type: application/json
+```
+
+**Supported actions**
+
+| Action            | Body                                  | Returns |
+|-------------------|---------------------------------------|---------|
+| `stats`           | `{ "action": "stats" }`               | Aggregated counts (apprentices, courses, classes, partners) |
+| `list_apprentices`| `{ "action": "list_apprentices" }`    | All apprentices with their class + partner |
+| `calendar`        | `{ "action": "calendar", "jovem_id": "<uuid>" }` | Generated 2-year calendar for a single apprentice |
+
+**Example**
+```bash
+curl -X POST "$SUPABASE_URL/functions/v1/apprentice-api" \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"stats"}'
+```
+
+Every request validates the JWT server-side using Supabase Auth — unauthenticated calls return `401 Unauthorized`.
+
+---
+
 ## 📄 License
 
 Proprietary — internal apprenticeship management tool.
