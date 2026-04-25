@@ -1,4 +1,4 @@
-// Calendar generation engine - Programa Jovem Aprendiz
+// Calendar generation engine - Apprenticeship Program
 
 export type DayType = "weekend" | "holiday" | "special-initial" | "theoretical" | "practical" | "outside";
 
@@ -17,19 +17,40 @@ export interface Holiday {
   nome: string;
 }
 
+export interface CalendarLabels {
+  initialTitle: string;
+  initialDesc: string;
+  practicalTitleWith: (name: string) => string;
+  practicalTitleGeneric: string;
+  practicalDescWith: (name: string) => string;
+  practicalDescGeneric: string;
+  theoreticalDesc: string;
+}
+
 export interface GenerateOptions {
   start: Date;
   end: Date;
-  diaTeorico: number; // 0=Dom..6=Sab
-  horaInicio: string; // "08:00"
-  horaFim: string; // "14:00"
+  diaTeorico: number;
+  horaInicio: string;
+  horaFim: string;
   turnoTercaSabado: boolean;
-  cargaTotal: number; // horas teóricas totais
-  horasPorAulaTeorica?: number; // default = duração da turma
+  cargaTotal: number;
+  horasPorAulaTeorica?: number;
   cursoNome: string;
   parceiroNome?: string;
   conteudosTeoricos: { titulo: string; descricao?: string | null }[];
+  labels?: CalendarLabels;
 }
+
+const DEFAULT_LABELS: CalendarLabels = {
+  initialTitle: "🎓 Initial Concentration",
+  initialDesc: "Onboarding and program introduction",
+  practicalTitleWith: (n) => `💼 Class at partner · ${n}`,
+  practicalTitleGeneric: "💼 Practical Activity",
+  practicalDescWith: (n) => `Practical activity at partner ${n}.`,
+  practicalDescGeneric: "Practical activity at the company.",
+  theoreticalDesc: "Theoretical class",
+};
 
 const isHoliday = (d: Date, holidays: Holiday[]) =>
   holidays.find((h) => h.mes === d.getMonth() + 1 && h.dia === d.getDate());
@@ -49,11 +70,6 @@ function durationHours(hi: string, hf: string): number {
   return (h2 + m2 / 60) - (h1 + m1 / 60);
 }
 
-/**
- * Determina se o dia da semana é "útil" para a regra:
- *  - Padrão: Seg-Sex (1..5)
- *  - Turno terça-a-sábado: 2..6
- */
 function isWorkDay(date: Date, turnoTercaSabado: boolean): boolean {
   const dow = date.getDay();
   return turnoTercaSabado ? dow >= 2 && dow <= 6 : dow >= 1 && dow <= 5;
@@ -64,6 +80,7 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
     start, end, diaTeorico, horaInicio, horaFim, turnoTercaSabado,
     cargaTotal, cursoNome, parceiroNome, conteudosTeoricos,
   } = opts;
+  const L = opts.labels ?? DEFAULT_LABELS;
 
   const horasPorAula = opts.horasPorAulaTeorica ?? durationHours(horaInicio, horaFim);
   const totalAulasTeoricas = Math.ceil(cargaTotal / Math.max(horasPorAula, 1));
@@ -71,7 +88,6 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
   const days: CalendarDay[] = [];
   const horario = `${horaInicio} - ${horaFim}`;
 
-  // 1) Encontrar os primeiros 10 dias úteis a partir do start (concentração inicial)
   const initialDates: Date[] = [];
   let cursor = new Date(start);
   while (initialDates.length < 10 && cursor <= end) {
@@ -82,7 +98,7 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
   }
 
   let aulasTeoricasAgendadas = 0;
-  const teoricoSemanaUsado = new Set<string>(); // chave: yyyy-ww
+  const teoricoSemanaUsado = new Set<string>();
 
   const weekKey = (d: Date) => {
     const onejan = new Date(d.getFullYear(), 0, 1);
@@ -90,7 +106,6 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
     return `${d.getFullYear()}-${week}`;
   };
 
-  // 2) Itera dia a dia entre start e end
   let d = new Date(start);
   while (d <= end) {
     const date = new Date(d);
@@ -105,24 +120,23 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
       days.push({
         date,
         type: "special-initial",
-        title: "🎓 Concentração Inicial",
+        title: L.initialTitle,
         time: horario,
-        desc: "Integração, boas-vindas, apresentação do programa",
+        desc: L.initialDesc,
       });
     } else {
-      // Teórico: dia da semana == diaTeorico, 1x por semana, até bater carga
       const isTeoricoDia = date.getDay() === diaTeorico;
       const wk = weekKey(date);
       if (isTeoricoDia && aulasTeoricasAgendadas < totalAulasTeoricas && !teoricoSemanaUsado.has(wk)) {
         const conteudo = conteudosTeoricos.length
           ? conteudosTeoricos[aulasTeoricasAgendadas % conteudosTeoricos.length]
-          : { titulo: cursoNome, descricao: "Aula teórica" };
+          : { titulo: cursoNome, descricao: L.theoreticalDesc };
         days.push({
           date,
           type: "theoretical",
           title: `📚 ${conteudo.titulo}`,
           time: horario,
-          desc: conteudo.descricao || "Aula teórica do curso",
+          desc: conteudo.descricao || L.theoreticalDesc,
         });
         aulasTeoricasAgendadas++;
         teoricoSemanaUsado.add(wk);
@@ -130,9 +144,9 @@ export function generateCalendar(opts: GenerateOptions, holidays: Holiday[]): Ca
         days.push({
           date,
           type: "practical",
-          title: parceiroNome ? `💼 Aula no parceiro · ${parceiroNome}` : "💼 Atividade Prática",
+          title: parceiroNome ? L.practicalTitleWith(parceiroNome) : L.practicalTitleGeneric,
           time: "09:00 - 15:00",
-          desc: parceiroNome ? `Atividade prática na empresa parceira ${parceiroNome}.` : "Atividade prática na empresa.",
+          desc: parceiroNome ? L.practicalDescWith(parceiroNome) : L.practicalDescGeneric,
         });
       }
     }
@@ -154,8 +168,8 @@ export function groupByMonth(days: CalendarDay[]): { year: number; month: number
 }
 
 export const MONTH_NAMES = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
-export const WEEKDAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+export const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
