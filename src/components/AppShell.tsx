@@ -1,18 +1,30 @@
-import { Link, useLocation } from "react-router-dom";
-import { Calendar, GraduationCap, BookOpen, Users, Building2, UsersRound, LayoutDashboard } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Calendar, GraduationCap, BookOpen, Users, Building2, UsersRound, LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const items = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/jovens", label: "Jovens", icon: Users },
-  { to: "/turmas", label: "Turmas", icon: UsersRound },
-  { to: "/cursos", label: "Cursos", icon: GraduationCap },
-  { to: "/conteudos", label: "Conteúdos", icon: BookOpen },
-  { to: "/parceiros", label: "Parceiros", icon: Building2 },
-];
+import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const loc = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const items = [
+    { to: "/", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { to: "/jovens", label: t("nav.youth"), icon: Users },
+    { to: "/turmas", label: t("nav.classes"), icon: UsersRound },
+    { to: "/cursos", label: t("nav.courses"), icon: GraduationCap },
+    { to: "/conteudos", label: t("nav.content"), icon: BookOpen },
+    { to: "/parceiros", label: t("nav.partners"), icon: Building2 },
+  ];
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -22,8 +34,8 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
               <Calendar className="h-5 w-5 text-primary-foreground" />
             </div>
             <div className="flex flex-col leading-none">
-              <span className="text-sm font-bold gradient-text">Jovem Aprendiz</span>
-              <span className="text-[10px] text-muted-foreground">Calendário de Atividades</span>
+              <span className="text-sm font-bold gradient-text">{t("brand.name")}</span>
+              <span className="text-[10px] text-muted-foreground">{t("brand.tagline")}</span>
             </div>
           </Link>
           <nav className="flex items-center gap-1">
@@ -47,6 +59,12 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
               );
             })}
           </nav>
+          <div className="flex items-center gap-1">
+            <LanguageSwitcher />
+            <Button variant="ghost" size="sm" onClick={signOut} title={t("auth.signOut")}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </header>
       <main className="container py-8 animate-fade-in">{children}</main>

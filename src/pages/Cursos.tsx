@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useList, useUpsert, useRemove } from "@/hooks/useCrud";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
@@ -14,6 +15,7 @@ type Curso = { id: string; nome: string; carga_semanal: number; carga_total: num
 const empty = { id: "", nome: "", carga_semanal: 4, carga_total: 400 };
 
 const Cursos = () => {
+  const { t } = useTranslation();
   const { data = [] } = useList<Curso>("cursos");
   const upsert = useUpsert("cursos");
   const remove = useRemove("cursos");
@@ -32,22 +34,22 @@ const Cursos = () => {
   return (
     <AppShell>
       <PageHeader
-        title="Cursos"
-        subtitle="Defina cargas horárias semanais e totais"
+        title={t("courses.title")}
+        subtitle={t("courses.subtitle")}
         actions={
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setForm(empty); }}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> Novo curso</Button>
+              <Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> {t("courses.new")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>{form.id ? "Editar" : "Novo"} curso</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{form.id ? t("courses.edit") : t("courses.new")}</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-4">
-                <div><Label>Nome</Label><Input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
+                <div><Label>{t("courses.name")}</Label><Input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Carga semanal (h)</Label><Input type="number" min={1} value={form.carga_semanal} onChange={(e) => setForm({ ...form, carga_semanal: Number(e.target.value) })} /></div>
-                  <div><Label>Carga total (h)</Label><Input type="number" min={1} value={form.carga_total} onChange={(e) => setForm({ ...form, carga_total: Number(e.target.value) })} /></div>
+                  <div><Label>{t("courses.weeklyHours")}</Label><Input type="number" min={1} value={form.carga_semanal} onChange={(e) => setForm({ ...form, carga_semanal: Number(e.target.value) })} /></div>
+                  <div><Label>{t("courses.totalHours")}</Label><Input type="number" min={1} value={form.carga_total} onChange={(e) => setForm({ ...form, carga_total: Number(e.target.value) })} /></div>
                 </div>
-                <DialogFooter><Button type="submit" className="bg-gradient-primary">Salvar</Button></DialogFooter>
+                <DialogFooter><Button type="submit" className="bg-gradient-primary">{t("common.save")}</Button></DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
@@ -60,7 +62,7 @@ const Cursos = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><GraduationCap className="h-5 w-5" /></div>
               <div className="min-w-0">
                 <h3 className="truncate font-semibold">{c.nome}</h3>
-                <p className="text-xs text-muted-foreground">{c.carga_semanal}h/sem · {c.carga_total}h totais</p>
+                <p className="text-xs text-muted-foreground">{t("courses.perWeek", { w: c.carga_semanal, t: c.carga_total })}</p>
               </div>
             </div>
             <div className="flex justify-end gap-2">
@@ -69,7 +71,7 @@ const Cursos = () => {
             </div>
           </Card>
         ))}
-        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Nenhum curso cadastrado.</p>}
+        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">{t("courses.empty")}</p>}
       </div>
     </AppShell>
   );

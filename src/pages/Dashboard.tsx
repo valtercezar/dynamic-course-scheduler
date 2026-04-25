@@ -1,41 +1,27 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useList } from "@/hooks/useCrud";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Users,
-  UsersRound,
-  GraduationCap,
-  BookOpen,
-  Building2,
-  Calendar,
-  ArrowRight,
-  TrendingUp,
-  Clock,
+  Users, UsersRound, GraduationCap, BookOpen, Building2,
+  ArrowRight, TrendingUp, Clock,
 } from "lucide-react";
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  PieChart, Pie, Cell, Legend,
 } from "recharts";
 
 type Jovem = { id: string; nome: string; turma_id: string | null; parceiro_id: string | null; data_inicio: string; data_fim: string };
 type Turma = { id: string; codigo: string; curso_id: string };
-type Curso = { id: string; nome: string; carga_total: number; carga_semanal: number };
+type Curso = { id: string; nome: string };
 type Parceiro = { id: string; nome: string };
-type Conteudo = { id: string; titulo: string };
+type Conteudo = { id: string };
 
 const Dashboard = () => {
+  const { t, i18n } = useTranslation();
   const { data: jovens = [] } = useList<Jovem>("jovens");
   const { data: turmas = [] } = useList<Turma>("turmas");
   const { data: cursos = [] } = useList<Curso>("cursos");
@@ -49,35 +35,33 @@ const Dashboard = () => {
     .sort((a, b) => +new Date(a.data_fim) - +new Date(b.data_fim))
     .slice(0, 5);
 
-  // Jovens por parceiro
   const porParceiro = parceiros.map((p) => ({
     nome: p.nome.length > 12 ? p.nome.slice(0, 12) + "…" : p.nome,
     total: jovens.filter((j) => j.parceiro_id === p.id).length,
   }));
   const semParceiro = jovens.filter((j) => !j.parceiro_id).length;
-  if (semParceiro > 0) porParceiro.push({ nome: "Sem parceiro", total: semParceiro });
+  if (semParceiro > 0) porParceiro.push({ nome: t("dashboard.noPartner"), total: semParceiro });
 
-  // Jovens por curso (via turma)
   const porCurso = cursos.map((c) => {
     const turmaIds = turmas.filter((t) => t.curso_id === c.id).map((t) => t.id);
     return { nome: c.nome.length > 14 ? c.nome.slice(0, 14) + "…" : c.nome, total: jovens.filter((j) => j.turma_id && turmaIds.includes(j.turma_id)).length };
   });
 
   const COLORS = ["hsl(var(--primary))", "hsl(var(--accent))", "hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))", "hsl(var(--muted-foreground))"];
+  const locale = i18n.language?.startsWith("pt") ? "pt-BR" : "en-US";
 
   const stats = [
-    { label: "Jovens", value: jovens.length, sub: `${ativos.length} ativos`, icon: Users, to: "/jovens", color: "from-primary to-accent" },
-    { label: "Turmas", value: turmas.length, sub: "abertas", icon: UsersRound, to: "/turmas", color: "from-accent to-primary" },
-    { label: "Cursos", value: cursos.length, sub: "cadastrados", icon: GraduationCap, to: "/cursos", color: "from-success to-primary" },
-    { label: "Parceiros", value: parceiros.length, sub: "empresas", icon: Building2, to: "/parceiros", color: "from-warning to-accent" },
-    { label: "Conteúdos", value: conteudos.length, sub: "trilhas", icon: BookOpen, to: "/conteudos", color: "from-primary to-success" },
+    { label: t("dashboard.apprentices"), value: jovens.length, sub: t("dashboard.active", { n: ativos.length }), icon: Users, to: "/jovens", color: "from-primary to-accent" },
+    { label: t("dashboard.classes"), value: turmas.length, sub: t("dashboard.open"), icon: UsersRound, to: "/turmas", color: "from-accent to-primary" },
+    { label: t("dashboard.courses"), value: cursos.length, sub: t("dashboard.registered"), icon: GraduationCap, to: "/cursos", color: "from-success to-primary" },
+    { label: t("dashboard.partners"), value: parceiros.length, sub: t("dashboard.companies"), icon: Building2, to: "/parceiros", color: "from-warning to-accent" },
+    { label: t("dashboard.contents"), value: conteudos.length, sub: t("dashboard.tracks"), icon: BookOpen, to: "/conteudos", color: "from-primary to-success" },
   ];
 
   return (
     <AppShell>
-      <PageHeader title="Dashboard" subtitle="Visão geral do programa Jovem Aprendiz" />
+      <PageHeader title={t("dashboard.title")} subtitle={t("dashboard.subtitle")} />
 
-      {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => {
           const Icon = s.icon;
@@ -99,15 +83,14 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Charts */}
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card className="bg-gradient-card p-5">
           <div className="mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
-            <h3 className="font-semibold">Jovens por curso</h3>
+            <h3 className="font-semibold">{t("dashboard.byCourse")}</h3>
           </div>
           {porCurso.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados ainda</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("dashboard.noData")}</p>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={porCurso}>
@@ -124,10 +107,10 @@ const Dashboard = () => {
         <Card className="bg-gradient-card p-5">
           <div className="mb-4 flex items-center gap-2">
             <Building2 className="h-4 w-4 text-accent" />
-            <h3 className="font-semibold">Distribuição por parceiro</h3>
+            <h3 className="font-semibold">{t("dashboard.byPartner")}</h3>
           </div>
           {porParceiro.every((p) => p.total === 0) ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Sem dados ainda</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("dashboard.noData")}</p>
           ) : (
             <ResponsiveContainer width="100%" height={240}>
               <PieChart>
@@ -142,21 +125,20 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Próximos términos */}
       <Card className="mt-6 bg-gradient-card p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-warning" />
-            <h3 className="font-semibold">Próximos términos de contrato</h3>
+            <h3 className="font-semibold">{t("dashboard.upcomingEnd")}</h3>
           </div>
-          <Link to="/jovens"><Button variant="ghost" size="sm">Ver todos <ArrowRight className="ml-1 h-3.5 w-3.5" /></Button></Link>
+          <Link to="/jovens"><Button variant="ghost" size="sm">{t("dashboard.seeAll")} <ArrowRight className="ml-1 h-3.5 w-3.5" /></Button></Link>
         </div>
         {proximoFim.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">Nenhum jovem ativo</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">{t("dashboard.noActive")}</p>
         ) : (
           <div className="divide-y divide-border/60">
             {proximoFim.map((j) => {
-              const turma = turmas.find((t) => t.id === j.turma_id);
+              const turma = turmas.find((tt) => tt.id === j.turma_id);
               const dias = Math.ceil((+new Date(j.data_fim) - +today) / (1000 * 60 * 60 * 24));
               return (
                 <Link key={j.id} to={`/calendario/${j.id}`} className="flex items-center justify-between py-3 transition-colors hover:bg-muted/30">
@@ -164,12 +146,12 @@ const Dashboard = () => {
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary text-sm font-bold text-primary-foreground">{j.nome.charAt(0).toUpperCase()}</div>
                     <div>
                       <p className="text-sm font-medium">{j.nome}</p>
-                      <p className="text-xs text-muted-foreground">Turma {turma?.codigo ?? "—"}</p>
+                      <p className="text-xs text-muted-foreground">{t("dashboard.classes")} {turma?.codigo ?? "—"}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">{new Date(j.data_fim).toLocaleDateString("pt-BR")}</p>
-                    <p className="text-xs text-muted-foreground">{dias} dias restantes</p>
+                    <p className="text-sm font-medium">{new Date(j.data_fim).toLocaleDateString(locale)}</p>
+                    <p className="text-xs text-muted-foreground">{t("dashboard.daysLeft", { n: dias })}</p>
                   </div>
                 </Link>
               );
