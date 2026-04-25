@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useList, useUpsert, useRemove } from "@/hooks/useCrud";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
@@ -14,6 +15,7 @@ type P = { id: string; nome: string; descricao: string | null };
 const empty: P = { id: "", nome: "", descricao: "" };
 
 const Parceiros = () => {
+  const { t } = useTranslation();
   const { data = [] } = useList<P>("parceiros");
   const upsert = useUpsert("parceiros");
   const remove = useRemove("parceiros");
@@ -28,16 +30,16 @@ const Parceiros = () => {
   };
   return (
     <AppShell>
-      <PageHeader title="Parceiros" subtitle="Empresas onde os jovens fazem a parte prática"
+      <PageHeader title={t("partners.title")} subtitle={t("partners.subtitle")}
         actions={
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setForm(empty); }}>
-            <DialogTrigger asChild><Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> Novo parceiro</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> {t("partners.new")}</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>{form.id ? "Editar" : "Novo"} parceiro</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{form.id ? t("partners.edit") : t("partners.new")}</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-4">
-                <div><Label>Nome</Label><Input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
-                <div><Label>Descrição</Label><Textarea value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
-                <DialogFooter><Button type="submit" className="bg-gradient-primary">Salvar</Button></DialogFooter>
+                <div><Label>{t("partners.name")}</Label><Input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
+                <div><Label>{t("partners.description")}</Label><Textarea value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
+                <DialogFooter><Button type="submit" className="bg-gradient-primary">{t("common.save")}</Button></DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
@@ -59,7 +61,7 @@ const Parceiros = () => {
             </div>
           </Card>
         ))}
-        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Nenhum parceiro cadastrado.</p>}
+        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">{t("partners.empty")}</p>}
       </div>
     </AppShell>
   );

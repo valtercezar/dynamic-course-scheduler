@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useList, useUpsert, useRemove } from "@/hooks/useCrud";
 import { AppShell } from "@/components/AppShell";
 import { PageHeader } from "@/components/PageHeader";
@@ -19,6 +20,7 @@ type Conteudo = { id: string; titulo: string; descricao: string | null };
 type Curso = { id: string; nome: string };
 
 const Conteudos = () => {
+  const { t } = useTranslation();
   const { data = [] } = useList<Conteudo>("conteudos");
   const { data: cursos = [] } = useList<Curso>("cursos");
   const upsert = useUpsert("conteudos");
@@ -27,7 +29,6 @@ const Conteudos = () => {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Conteudo>({ id: "", titulo: "", descricao: "" });
-  const [linkOpen, setLinkOpen] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,27 +50,27 @@ const Conteudos = () => {
 
   const linkConteudo = async (conteudoId: string, cursoId: string) => {
     const { error } = await (supabase as any).from("curso_conteudos").insert({ curso_id: cursoId, conteudo_id: conteudoId });
-    if (error) toast.error(error.message); else { toast.success("Vinculado"); qc.invalidateQueries({ queryKey: ["curso_conteudos_all"] }); }
+    if (error) toast.error(error.message); else { toast.success(t("common.saved")); qc.invalidateQueries({ queryKey: ["curso_conteudos_all"] }); }
   };
   const unlink = async (id: string) => {
     const { error } = await (supabase as any).from("curso_conteudos").delete().eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Removido"); qc.invalidateQueries({ queryKey: ["curso_conteudos_all"] }); }
+    if (error) toast.error(error.message); else { toast.success(t("common.deleted")); qc.invalidateQueries({ queryKey: ["curso_conteudos_all"] }); }
   };
 
   return (
     <AppShell>
       <PageHeader
-        title="Conteúdos"
-        subtitle="Cadastre conteúdos e vincule a cursos"
+        title={t("content.title")}
+        subtitle={t("content.subtitle")}
         actions={
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setForm({ id: "", titulo: "", descricao: "" }); }}>
-            <DialogTrigger asChild><Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> Novo conteúdo</Button></DialogTrigger>
+            <DialogTrigger asChild><Button className="bg-gradient-primary"><Plus className="h-4 w-4" /> {t("content.new")}</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>{form.id ? "Editar" : "Novo"} conteúdo</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{form.id ? t("content.edit") : t("content.new")}</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-4">
-                <div><Label>Título</Label><Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} /></div>
-                <div><Label>Descrição</Label><Textarea value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
-                <DialogFooter><Button type="submit" className="bg-gradient-primary">Salvar</Button></DialogFooter>
+                <div><Label>{t("content.titleField")}</Label><Input required value={form.titulo} onChange={(e) => setForm({ ...form, titulo: e.target.value })} /></div>
+                <div><Label>{t("content.description")}</Label><Textarea value={form.descricao ?? ""} onChange={(e) => setForm({ ...form, descricao: e.target.value })} /></div>
+                <DialogFooter><Button type="submit" className="bg-gradient-primary">{t("common.save")}</Button></DialogFooter>
               </form>
             </DialogContent>
           </Dialog>
@@ -91,7 +92,7 @@ const Conteudos = () => {
                 {myLinks.map((l) => {
                   const curso = cursos.find((x) => x.id === l.curso_id);
                   return (
-                    <Badge key={l.id} variant="secondary" className="cursor-pointer" onClick={() => unlink(l.id)} title="Clique para desvincular">
+                    <Badge key={l.id} variant="secondary" className="cursor-pointer" onClick={() => unlink(l.id)} title={t("content.unlinkHint")}>
                       {curso?.nome ?? "?"} ✕
                     </Badge>
                   );
@@ -99,7 +100,7 @@ const Conteudos = () => {
               </div>
               <div className="flex items-center justify-between gap-2">
                 <Select onValueChange={(v) => linkConteudo(c.id, v)} value="">
-                  <SelectTrigger className="h-8 w-auto text-xs"><Link2 className="mr-1 h-3 w-3" /><SelectValue placeholder="Vincular curso" /></SelectTrigger>
+                  <SelectTrigger className="h-8 w-auto text-xs"><Link2 className="mr-1 h-3 w-3" /><SelectValue placeholder={t("content.linkCourse")} /></SelectTrigger>
                   <SelectContent>{cursos.map((x) => <SelectItem key={x.id} value={x.id}>{x.nome}</SelectItem>)}</SelectContent>
                 </Select>
                 <div className="flex gap-1">
@@ -110,7 +111,7 @@ const Conteudos = () => {
             </Card>
           );
         })}
-        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Nenhum conteúdo cadastrado.</p>}
+        {data.length === 0 && <p className="col-span-full text-sm text-muted-foreground">{t("content.empty")}</p>}
       </div>
     </AppShell>
   );

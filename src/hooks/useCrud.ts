@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import i18n from "@/i18n";
 
 type Table = "cursos" | "conteudos" | "curso_conteudos" | "parceiros" | "turmas" | "jovens" | "feriados";
 
@@ -24,9 +25,9 @@ export function useUpsert(table: Table) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [table] });
-      toast.success("Salvo com sucesso");
+      toast.success(i18n.t("common.saved"));
     },
-    onError: (e: any) => toast.error(e.message ?? "Erro ao salvar"),
+    onError: (e: any) => toast.error(e.message ?? i18n.t("common.saveError")),
   });
 }
 
@@ -39,8 +40,8 @@ export function useRemove(table: Table) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [table] });
-      toast.success("Excluído");
+      toast.success(i18n.t("common.deleted"));
     },
-    onError: (e: any) => toast.error(e.message ?? "Erro ao excluir"),
+    onError: (e: any) => toast.error(e.message ?? i18n.t("common.deleteError")),
   });
 }
